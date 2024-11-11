@@ -20,9 +20,13 @@ Database migrations set up and manage the schema for the Shortener API.
 To apply migrations and set up the database schema:
 
 ```bash
-Default POSTGRES_DSN ?= "postgres://shortener:postgres-password@localhost:5432/shortener?sslmode=disable"
+# default
 
-if you want to change POSTGRES_DSN source in makefile
+POSTGRES_DSN="postgres://shortener:postgres-password@localhost:5432/shortener?sslmode=disable"
+
+# you can change it and use like this
+
+POSTGRES_DSN="postgres..." make migrate-up
 ```
 
 ```bash
