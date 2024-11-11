@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    container_name: mechta
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_URL: "postgres://shortener:postgres-password@postgres:5432/shortener?sslmode=disable"
+    depends_on:
+      - postgres
+
+
+  postgres:
+    image: postgres:13-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: shortener
+      POSTGRES_PASSWORD: postgres-password
+      POSTGRES_DB: shortener
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "shortener" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+
+volumes:
+  postgres:

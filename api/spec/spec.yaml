@@ -1,0 +1,283 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Shortener API
+
+servers:
+  - url: "http://localhost:8000"
+    description: Local development
+
+paths:
+  /shortener:
+    post:
+      summary: Generate a shortened URL.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShortenerPostRequest"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShortenerPostResponse"
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        500:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+    get:
+      summary: List of all created shortened links.
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkListResponse"
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        404:
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+        500:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /{link}:
+    get:
+      summary: Redirects to the original URL based on the short link.
+      parameters:
+        - name: link
+          in: path
+          required: true
+          description: The unique identifier of the shortened URL
+          schema:
+            type: string
+            example: "3yJH0vvs"
+      responses:
+        302:
+          description: Redirect to the original URL
+          headers:
+            Location:
+              schema:
+                $ref: "#/components/schemas/RedirectResponse"
+        404:
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+        500:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+    delete:
+      summary: Delete a shortened URL.
+      parameters:
+        - name: link
+          in: path
+          required: true
+          description: The unique identifier of the shortened URL to delete
+          schema:
+            type: string
+            example: "3yJH0vvs"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ok"
+        404:
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+        500:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+  /stats/{link}:
+    get:
+      summary: Return statistics for a shortened URL.
+      parameters:
+        - name: link
+          in: path
+          required: true
+          description: The unique identifier of the shortened URL
+          schema:
+            type: string
+            example: "3yJH0vvs"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkItem"
+        404:
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+        500:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerError"
+
+components:
+  schemas:
+    ShortenerPostRequest:
+      description: request body
+      type: object
+      required:
+        - url
+        - expire_days
+      properties:
+        url:
+          type: string
+          example: "https://mechta.kz/product/name"
+        expire_days:
+          type: integer
+          example: 10
+    ShortenerPostResponse:
+      description: response
+      type: object
+      required:
+        - short_link
+      properties:
+        short_link:
+          type: string
+          example: "https://mechta.kz/3yJH0vv"
+    LinkItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+        target_url:
+          type: string
+          example: "https://mechta.kz/product/name"
+        short_link:
+          type: string
+          example: "https://mechta.kz/3yJH0vv"
+        last_access:
+          type: string
+          format: date-time
+          example: "2024-11-15T15:30:00Z"
+        access_count:
+          type: integer
+          example: 9
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-11-10T15:30:00Z"
+        expire_at:
+          type: string
+          format: date-time
+          example: "2024-12-10T15:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-11-25T15:30:00Z"
+        deleted_at:
+          type: string
+          format: date-time
+          example: "2024-11-25T15:30:00Z"
+      required:
+        - id
+        - target_url
+        - short_link
+        - created_at
+        - expire_at
+        - access_count
+        - updated_at
+    LinkListResponse:
+      description: response
+      type: array
+      items:
+        $ref: "#/components/schemas/LinkItem"
+    RedirectResponse:
+      type: string
+      format: uri
+      example: "https://mechta.kz/product/name"
+    BadRequest:
+      description: Error
+      type: object
+      required:
+        - message
+        - code
+      properties:
+        message:
+          type: string
+          example: "bad request"
+        code:
+          type: integer
+          example: 400
+    InternalServerError:
+      description: Internal server error
+      type: object
+      required:
+        - message
+        - code
+      properties:
+        message:
+          type: string
+          example: internal server error
+        code:
+          type: integer
+          example: 500
+    Ok:
+      description: Success
+      type: object
+      required:
+        - message
+        - code
+      properties:
+        message:
+          type: string
+          example: ok
+        code:
+          type: integer
+          example: 200
+    NotFound:
+      description: not found
+      type: object
+      required:
+        - message
+        - code
+      properties:
+        message:
+          type: string
+          example: not found
+        code:
+          type: integer
+          example: 404
